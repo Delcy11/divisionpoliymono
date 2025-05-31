@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Cuestionario de Divisi&oacute;n de Polinomios y Monomios</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #eef2f3;
+      padding: 20px;
+    }
+    h2 {
+      color: #0a5275;
+    }
+    input, button {
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 1em;
+    }
+    button {
+      background-color: #0a5275;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #063447;
+    }
+    #temporizador {
+      font-weight: bold;
+      margin: 15px 0;
+    }
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 20px;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div id="registro">
+    <h2>&iexcl;Registro del Participante!</h2>
+    <input type="text" id="nombre" placeholder="Ingresa tu nombre">
+    <button onClick="iniciarCuestionario()">&iexcl;Comenzar!</button>
+  </div>
+
+  <div id="cuestionario" style="display:none;">
+    <h2>Cuestionario: Divisi&oacute;n de Polinomios y Monomios</h2>
+    <div id="temporizador">Tiempo restante: <span id="tiempo">600</span> segundos</div>
+    <form id="formulario"></form>
+    <button onClick="enviarRespuestas()">&iexcl;Enviar!</button>
+  </div>
+
+  <div id="resultado" style="display:none;">
+    <h2>Resultados</h2>
+    <p><strong>Participante:</strong> <span id="nombreParticipante"></span></p>
+    <table>
+      <thead>
+        <tr><th>#</th><th>Tu Respuesta</th><th>Correcta</th><th>Resultado</th></tr>
+      </thead>
+      <tbody id="tablaResultados"></tbody>
+    </table>
+    <p><strong>Puntaje:</strong> <span id="puntajeFinal"></span>/10</p>
+  </div>
+
+  <script>
+    const preguntas = [
+      {
+        pregunta: '&iquest;Cu&aacute;l es el resultado de dividir 6x<sup>3</sup> entre 2x&quest;',
+        opciones: ['3x<sup>2</sup>', '12x<sup>4</sup>', '4x'],
+        correcta: '3x<sup>2</sup>'
+      },
+      {
+        pregunta: '&iquest; Cu&aacute;l es el resultado de dividir 8x<sup>5</sup> entre 4x<sup>2</sup>&quest;',
+        opciones: ['2x<sup>3</sup>y', '2x<sup>7</sup>', '4x<sup>3</sup>'],
+        correcta: '2x<sup>3</sup>y'
+      },
+      {
+        pregunta: '(9x<sup>2</sup> + 6x) &divide; 3x',
+        opciones: ['3x + 2', '3x + 2x', '3x<sup>2</sup>'],
+        correcta: '3x + 2'
+      },
+      {
+        pregunta: '(4x<sup>3</sup> - 2x<sup>2</sup>) &divide; 2x',
+        opciones: ['2x<sup>2</sup> - x', '2x - x<sup>2</sup>', '2x<sup>2</sup> + x'],
+        correcta: '2x<sup>2</sup> - x'
+      },
+      {
+        pregunta: 'Divide -15x<sup>4</sup>y<sup>2</sup> entre 5x<sup>2</sup>',
+        opciones: ['-3x<sup>2</sup>y<sup>2</sup>', '-10x<sup>2</sup>y', '-3x<sup>6</sup>'],
+        correcta: '-3x<sup>2</sup>y<sup>2</sup>'
+      },
+      {
+        pregunta: 'Divide (10x<sup>3</sup> + 5x<sup>2</sup>) &divide; 5x',
+        opciones: ['2x<sup>2</sup> + x', '2x + 1', 'x<sup>2</sup> + 5'],
+        correcta: '2x<sup>2</sup> + x'
+      },
+      {
+        pregunta: 'Divide -12x<sup>5</sup> entre -3x<sup>2</sup>',
+        opciones: ['4x<sup>3</sup>', '-4x<sup>3</sup>', '4x<sup>7</sup>'],
+        correcta: '4x<sup>3</sup>'
+      },
+      {
+        pregunta: 'Divide (6x<sup>2</sup> - 12x) &divide; 6x',
+        opciones: ['x - 2', 'x<sup>2</sup> - 12', 'x + 2'],
+        correcta: 'x - 2'
+      },
+      {
+        pregunta: '&iquest;Cu&aacute;l es el resultado de (x<sup>3</sup> + 3x<sup>2</sup>) &divide; x&quest;',
+        opciones: ['x<sup>2</sup> + 3x', 'x<sup>2</sup> + 3', 'x<sup>4</sup>'],
+        correcta: 'x<sup>2</sup> + 3x'
+      },
+      {
+        pregunta: 'Divide (x<sup>4</sup> - x<sup>2</sup>) &divide; x<sup>2</sup>',
+        opciones: ['x<sup>2</sup> - 1', 'x<sup>2</sup> + 1', 'x<sup>6</sup>'],
+        correcta: 'x<sup>2</sup> - 1'
+      }
+    ];
+
+    let tiempoRestante = 600;
+    let temporizador;
+    let respuestasCorrectas = [];
+
+    function iniciarCuestionario() {
+      const nombre = document.getElementById('nombre').value.trim();
+      if (!nombre) {
+        alert('Por favor, ingresa tu nombre');
+        return;
+      }
+
+      document.getElementById('registro').style.display = 'none';
+      document.getElementById('cuestionario').style.display = 'block';
+
+      renderizarPreguntas();
+      temporizador = setInterval(actualizarTiempo, 1000);
+    }
+
+    function actualizarTiempo() {
+      tiempoRestante--;
+      document.getElementById('tiempo').textContent = tiempoRestante;
+      if (tiempoRestante <= 0) {
+        clearInterval(temporizador);
+        enviarRespuestas();
+      }
+    }
+
+    function renderizarPreguntas() {
+      const contenedor = document.getElementById('formulario');
+      contenedor.innerHTML = '';
+      respuestasCorrectas = [];
+
+      const preguntasMezcladas = preguntas.sort(() => Math.random() - 0.5);
+
+      preguntasMezcladas.forEach((pregunta, index) => {
+        const opcionesMezcladas = [...pregunta.opciones].sort(() => Math.random() - 0.5);
+        const correcta = opcionesMezcladas.indexOf(pregunta.correcta);
+        respuestasCorrectas.push(correcta);
+
+        let html = `<div>
+          <p>${index + 1}. ${pregunta.pregunta}</p>`;
+        opcionesMezcladas.forEach((opcion, i) => {
+          html += `<label><input type="radio" name="q${index}" value="${i}"> ${opcion}</label><br>`;
+        });
+        html += '</div>';
+        contenedor.innerHTML += html;
+      });
+    }
+
+    function enviarRespuestas() {
+      clearInterval(temporizador);
+      document.getElementById('cuestionario').style.display = 'none';
+      document.getElementById('resultado').style.display = 'block';
+
+      const nombre = document.getElementById('nombre').value;
+      document.getElementById('nombreParticipante').textContent = nombre;
+
+      const tabla = document.getElementById('tablaResultados');
+      tabla.innerHTML = '';
+      let puntaje = 0;
+
+      for (let i = 0; i < 10; i++) {
+        const seleccion = document.querySelector(`input[name="q${i}"]:checked`);
+        const valor = seleccion ? parseInt(seleccion.value) : -1;
+        const correcta = respuestasCorrectas[i];
+        const esCorrecta = valor === correcta;
+        if (esCorrecta) puntaje++;
+
+        const letraSeleccion = valor >= 0 ? ['a','b','c'][valor] : 'No respondida';
+        const letraCorrecta = ['a','b','c'][correcta];
+        tabla.innerHTML += `<tr>
+          <td>${i + 1}</td>
+          <td>${letraSeleccion}</td>
+          <td>${letraCorrecta}</td>
+          <td>${esCorrecta ? 'correcta' : 'incorrecta'}</td>
+        </tr>`;
+      }
+
+      document.getElementById('puntajeFinal').textContent = puntaje;
+    }
+  </script>
+</body>
+</html>
